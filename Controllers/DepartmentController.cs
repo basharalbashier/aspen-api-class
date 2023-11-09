@@ -1,0 +1,44 @@
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System.Data.SqlClient;
+using System.Data;
+using System.Threading.Tasks;
+namespace aspenapi.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class DepartmentController : ControllerBase
+    {
+        private readonly IConfiguration _configration;
+        public DepartmentController(IConfiguration configration)
+        {
+            _configration = configration;
+        }
+        [HttpGet]
+        public JsonResult Get()
+        {
+            string query = @"
+                            select Department, DepartmentName from
+                            dbo.Department ";
+
+            DataTable table = new DataTable();
+            string sqlDataSource =
+                _configration.GetConnectionString("EmployeeAppCon");
+            SqlDataReader myReader;
+            using(SqlConnection myCon =new SqlConnection(sqlDataSource))
+            {
+                myCon.Open();
+                using (SqlCommand myCommand = new SqlCommand(query, myCon))
+                {
+                    myReader = myCommand.ExecuteReader();
+                    table.Load(myReader);
+                    myReader.Close();
+                    myCon.Close();
+            }
+            }
+
+            return new JsonResult(table);
+        }
+        }
+    }
+
